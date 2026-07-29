@@ -67,7 +67,7 @@ A multi-phase encounter with four escalating thresholds (100% → 80% → 50% �
 
 ## ✨ Features
 
-- **Single-file** — the entire game lives in `HexAndBow.html`; no dependencies to install
+- **Single-file** — the entire game lives in `index.html`; no dependencies to install
 - **Three.js r169** with post-processing: Bloom, AfterImage, vignette, and animated film grain
 - **Cinematic HUD** — boss phase bar, player health, ability slots with cooldown sweeps
 - **Dynamic audio** — Web Audio API with crossfading music (menu → boss fight → victory), looping footstep sounds, and per-ability SFX
@@ -94,7 +94,7 @@ A multi-phase encounter with four escalating thresholds (100% → 80% → 50% �
 
 ```
 HexAndBow/
-└── HexAndBow.html   # Entire game — HTML, CSS, and JS in one file
+└── index.html   # Entire game — HTML, CSS, and JS in one file
 ```
 
 ---
