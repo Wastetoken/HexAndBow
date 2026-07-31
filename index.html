@@ -768,6 +768,33 @@
             color: #f0d896;
         }
 
+        .muteBtn {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: rgba(10, 8, 6, 0.65);
+            border: 1px solid rgba(240, 200, 120, 0.3);
+            border-radius: 6px;
+            color: #cdbf95;
+            font-size: 0.62rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .muteBtn:hover,
+        .muteBtn:active {
+            background: rgba(240, 200, 120, 0.12);
+            color: #f0d896;
+        }
+
+        .muteBtn.off {
+            border-color: rgba(255, 80, 60, 0.5);
+            color: #ff6b5d;
+        }
+
         #banner {
             position: absolute;
             top: 24%;
@@ -1093,11 +1120,14 @@
                         <button id="btnTestSfx" class="toggleBtn" style="margin-top:8px;width:100%;">Test SFX</button>
                     </div>
                     <div class="setSection">
-                        <div class="setSectionTitle">Controls</div>
+                        <div class="setSectionTitle">Controls & Tips</div>
                         <div class="controlsBlock">
                             <b>WASD</b> move · <b>Shift</b> run · <b>Space</b> jump<br />
-                            <b>LMB / RMB drag</b> orbit · <b>Scroll</b> zoom · <b>1-3</b> abilities<br />
-                            <b>ESC</b> open/close this panel
+                            <b>LMB / RMB drag</b> orbit camera · <b>Scroll</b> zoom · <b>1-3</b> abilities<br />
+                            <b>Gamepad</b>: sticks move/look · A jump · X/Y/B abilities<br />
+                            Break <b>line of sight</b> behind structures to dodge fireballs & meteors.<br />
+                            Run out of the <b>red rings</b> before the spikes erupt!<br />
+                            <b>ESC</b> open/close settings panel
                         </div>
                     </div>
                 </div>
@@ -1247,7 +1277,7 @@
                 const src = ctx.createBufferSource();
                 const gain = ctx.createGain();
                 src.buffer = buf; gain.gain.value = volume;
-                src.connect(gain).connect(sfxGain);
+                src.connect(gain).connect(sfxGain || masterGain || ctx.destination);
                 src.start();
                 const inst = { src, gain };
                 oneShots.set(name, inst);
@@ -1264,9 +1294,11 @@
                 panner.refDistance = REF_DIST;
                 panner.maxDistance = MAX_DIST;
                 panner.rolloffFactor = ROLLOFF;
-                panner.positionX.value = position.x;
-                panner.positionY.value = position.y;
-                panner.positionZ.value = position.z;
+                if (position) {
+                    panner.positionX.value = position.x;
+                    panner.positionY.value = position.y;
+                    panner.positionZ.value = position.z;
+                }
 
                 const killPrev = pannerCache.get(name);
                 if (killPrev) {
@@ -1275,7 +1307,7 @@
                         killPrev.gain.gain.cancelScheduledValues(now);
                         killPrev.gain.gain.setValueAtTime(killPrev.gain.gain.value, now);
                         killPrev.gain.gain.linearRampToValueAtTime(0.0001, now + FADE);
-                        killPrev.src.stop(now + FADE + 0.01);
+                        if (killPrev.src) killPrev.src.stop(now + FADE + 0.01);
                     } catch (e) { }
                 }
 
@@ -1284,7 +1316,11 @@
                 src.buffer = buf;
                 gain.gain.value = volume;
                 src.connect(gain).connect(panner);
-                panner.connect(audioListener.getInput());
+                if (audioListener && audioListener.getInput) {
+                    panner.connect(audioListener.getInput());
+                } else {
+                    panner.connect(sfxGain || masterGain || ctx.destination);
+                }
                 src.start();
 
                 pannerCache.set(name, { src, gain });
@@ -1300,7 +1336,7 @@
                 const gain = ctx.createGain();
                 src.buffer = buf; src.loop = true;
                 gain.gain.value = 0.0001;
-                src.connect(gain).connect(sfxGain);
+                src.connect(gain).connect(sfxGain || masterGain || ctx.destination);
                 src.start();
                 gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + MOVE_XFADE);
                 moveLoops[name] = { src, gain };
@@ -1331,7 +1367,7 @@
                 const gain = ctx.createGain();
                 src.buffer = buf; src.loop = loop;
                 gain.gain.value = 0.0001;
-                src.connect(gain).connect(musicGain);
+                src.connect(gain).connect(musicGain || masterGain || ctx.destination);
                 src.start();
                 gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + MUSIC_XFADE);
                 const entry = { name, src, gain };
@@ -1434,15 +1470,20 @@
 
         let settingsOpen = false;
         function openSettings() {
-            if (playerDead || !started) return;
+            if (typeof playerDead !== 'undefined' && playerDead) return;
+            if (typeof started !== 'undefined' && !started) return;
             settingsOpen = true;
-            document.getElementById('settingsPanel').classList.add('open');
-            document.getElementById('settingsBtn').classList.add('open');
+            const panel = document.getElementById('settingsPanel');
+            const btn = document.getElementById('settingsBtn');
+            if (panel) panel.classList.add('open');
+            if (btn) btn.classList.add('open');
         }
         function closeSettings() {
             settingsOpen = false;
-            document.getElementById('settingsPanel').classList.remove('open');
-            document.getElementById('settingsBtn').classList.remove('open');
+            const panel = document.getElementById('settingsPanel');
+            const btn = document.getElementById('settingsBtn');
+            if (panel) panel.classList.remove('open');
+            if (btn) btn.classList.remove('open');
         }
         function toggleSettings() { settingsOpen ? closeSettings() : openSettings(); }
 
@@ -1458,20 +1499,21 @@
                 allBtn.classList.toggle('off', AUDIO.allMuted);
             }
         }
-        document.getElementById('settingsBtn').addEventListener('click', toggleSettings);
-        document.getElementById('btnCloseSettings').addEventListener('click', closeSettings);
-        document.getElementById('settingsBackdrop').addEventListener('click', closeSettings);
-        document.getElementById('btnMuteMusic').addEventListener('click', () => {
-            AUDIO.toggleMusicMute();
-            updateMuteBtnLabels();
-        });
-        document.getElementById('btnMuteAll').addEventListener('click', () => {
-            AUDIO.toggleAllMute();
-            updateMuteBtnLabels();
-        });
-        document.getElementById('btnTestSfx').addEventListener('click', () => {
-            AUDIO.playOneShot('fireball', 1);
-        });
+
+        const settingsBtn = document.getElementById('settingsBtn');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const settingsBackdrop = document.getElementById('settingsBackdrop');
+        if (settingsBtn) settingsBtn.addEventListener('click', toggleSettings);
+        if (btnCloseSettings) btnCloseSettings.addEventListener('click', closeSettings);
+        if (settingsBackdrop) settingsBackdrop.addEventListener('click', closeSettings);
+
+        const btnMuteMusic = document.getElementById('btnMuteMusic');
+        const btnMuteAll = document.getElementById('btnMuteAll');
+        const btnTestSfx = document.getElementById('btnTestSfx');
+        if (btnMuteMusic) btnMuteMusic.addEventListener('click', () => { AUDIO.toggleMusicMute(); updateMuteBtnLabels(); });
+        if (btnMuteAll) btnMuteAll.addEventListener('click', () => { AUDIO.toggleAllMute(); updateMuteBtnLabels(); });
+        if (btnTestSfx) btnTestSfx.addEventListener('click', () => { AUDIO.playOneShot('fireball', 1); });
+
         const sliderMusic = document.getElementById('sliderMusic');
         const sliderSfx = document.getElementById('sliderSfx');
         const valMusic = document.getElementById('valMusic');
@@ -1479,15 +1521,15 @@
         if (sliderMusic) sliderMusic.addEventListener('input', e => {
             const v = parseInt(e.target.value) / 100;
             AUDIO.setMusicVolume(v);
-            valMusic.textContent = e.target.value;
+            if (valMusic) valMusic.textContent = e.target.value;
         });
         if (sliderSfx) sliderSfx.addEventListener('input', e => {
             const v = parseInt(e.target.value) / 100;
             AUDIO.setSfxVolume(v);
-            valSfx.textContent = e.target.value;
+            if (valSfx) valSfx.textContent = e.target.value;
         });
         addEventListener('keydown', e => {
-            if (e.code === 'Escape' && started && !playerDead) toggleSettings();
+            if (e.code === 'Escape') toggleSettings();
         });
 
         /* ============================ ASSETS ============================ */
