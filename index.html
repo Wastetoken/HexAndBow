@@ -953,7 +953,7 @@
         function haptic(ms) { if (isTouch && navigator.vibrate) navigator.vibrate(ms); }
 
         /* ============================ AUDIO ============================ */
-        const AUDIO_BASE = 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/';
+        const AUDIO_BASE = './audio/';
         const AUDIO_FILES = {
             arrowFire: 'ARROW-Fire.wav', arrowVolley: 'ARROW-Shadow-Volley.wav', arrowNuke: 'ARROW-Nuke.wav',
             fireball: 'MAGIC-Fireball.wav', frostbolt: 'MAGIC-Frostbolt.wav', firefrost: 'MAGIC-Firefrost.wav',
@@ -998,10 +998,16 @@
             function load(name) {
                 if (buffers[name]) return Promise.resolve(buffers[name]);
                 buffers[name] = fetch(AUDIO_BASE + AUDIO_FILES[name])
-                    .then(r => r.arrayBuffer())
+                    .then(r => {
+                        if (!r.ok) throw new Error('HTTP ' + r.status + ' ' + AUDIO_FILES[name]);
+                        return r.arrayBuffer();
+                    })
                     .then(ab => ensureCtx().decodeAudioData(ab))
                     .then(buf => (buffers[name] = buf))
-                    .catch(() => (buffers[name] = null));
+                    .catch(err => {
+                        console.error('[AUDIO] Failed to load:', AUDIO_FILES[name], err);
+                        buffers[name] = null;
+                    });
                 return buffers[name];
             }
             function fadeKill(inst, t = FADE) {
@@ -1143,7 +1149,7 @@
         ];
 
         /* ============================ INTRO VIDEO ============================ */
-        const INTRO_URL = AUDIO_BASE + 'Hex-And-Bow-Intro-Video.m4v';
+        const INTRO_URL = './audio/Hex-And-Bow-Intro-Video.m4v';
         const introEl = document.getElementById('intro');
         const introVid = document.getElementById('introVid');
         const introPlayBtn = document.getElementById('introPlay');
