@@ -121,30 +121,7 @@
             background: #000;
         }
 
-        #introPlay {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            padding: 16px 42px;
-            background: linear-gradient(135deg, rgba(30, 24, 14, 0.92), rgba(14, 10, 6, 0.92));
-            border: 1px solid rgba(240, 200, 120, 0.5);
-            border-radius: 10px;
-            color: #f0d896;
-            font-size: clamp(0.8rem, 3vw, 1rem);
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            font-weight: 600;
-            box-shadow: 0 0 30px rgba(240, 200, 120, 0.25);
-            transition: all .2s;
-        }
 
-        #introPlay:hover,
-        #introPlay:active {
-            background: rgba(240, 200, 120, 0.18);
-            box-shadow: 0 0 26px rgba(240, 200, 120, 0.45);
-        }
 
         #skipIntro {
             position: absolute;
@@ -231,6 +208,50 @@
 
         #pickArcher {
             left: 70%;
+        }
+
+        #menuHeader {
+            position: absolute;
+            top: calc(env(safe-area-inset-top, 0px) + 16px);
+            right: max(20px, env(safe-area-inset-right, 0px));
+            z-index: 75;
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        #menuAudioBtn,
+        #menuSettingsBtn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(30, 24, 14, 0.92), rgba(14, 10, 6, 0.92));
+            border: 1px solid rgba(240, 200, 120, 0.45);
+            border-radius: 8px;
+            color: #f0d896;
+            font-size: clamp(0.7rem, 2.2vw, 0.82rem);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 16px rgba(0, 0, 0, 0.6);
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #menuAudioBtn:hover,
+        #menuSettingsBtn:hover,
+        #menuAudioBtn:active,
+        #menuSettingsBtn:active {
+            background: rgba(240, 200, 120, 0.22);
+            border-color: rgba(240, 200, 120, 0.75);
+            box-shadow: 0 0 22px rgba(240, 200, 120, 0.4);
+        }
+
+        #menuAudioBtn.off {
+            color: #e09090;
+            border-color: rgba(220, 100, 100, 0.5);
+            background: rgba(45, 18, 18, 0.9);
         }
 
         #menuLoading {
@@ -441,11 +462,13 @@
             left: 50%;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
             transform: translateX(-50%);
+            container-type: inline-size;
+            container-name: actionbar;
         }
 
         #actionBarArt {
             display: block;
-            height: 200px;
+            height: clamp(120px, 16vw, 220px);
             width: auto;
             pointer-events: none;
             user-select: none;
@@ -505,7 +528,7 @@
             position: absolute;
             top: 4px;
             left: 7px;
-            font-size: 1.05rem;
+            font-size: clamp(0.55rem, 6cqw, 1.1rem);
             font-weight: 700;
             color: #ffe9b0;
             text-shadow: 0 1px 4px #000;
@@ -517,7 +540,7 @@
             bottom: -26px;
             width: 100%;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: clamp(0.45rem, 3.6cqw, 0.8rem);
             color: #ffe9b0;
             text-shadow: 0 1px 4px #000;
             z-index: 3;
@@ -540,7 +563,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: clamp(0.9rem, 11cqw, 2rem);
             font-weight: 700;
             color: #fff;
             text-shadow: 0 0 8px #000, 0 0 16px #000;
@@ -592,6 +615,7 @@
             align-items: center;
             justify-content: center;
             transition: transform .3s, background .2s;
+            pointer-events: auto;
         }
 
         #settingsBtn:hover,
@@ -1044,12 +1068,17 @@
     <div id="app">
 
         <div id="intro">
-            <video id="introVid" playsinline preload="auto"></video>
-            <div id="introPlay">▶ Play Intro</div>
+            <video id="introVid" playsinline preload="auto">
+                <source src="./Intro-Video/Hex-And-Bow-Intro-Video.m4v" type="video/mp4" />
+            </video>
             <div id="skipIntro">Skip ▸</div>
         </div>
 
         <div id="menu">
+            <div id="menuHeader">
+                <button id="menuAudioBtn" aria-label="Toggle Menu Music">🔊 Music: ON</button>
+                <button id="menuSettingsBtn" aria-label="Audio Settings">&#9881; Settings</button>
+            </div>
             <div id="menuTitle">Choose Your Champion</div>
             <div id="menuSub">The First Gate awaits</div>
             <div class="pickBtn" id="pickMage">Play Nightshade — Mage</div>
@@ -1095,43 +1124,6 @@
                 </div>
             </div>
             <button id="settingsBtn" aria-label="Settings">&#9881;</button>
-            <div id="settingsPanel">
-                <div id="settingsBackdrop"></div>
-                <div id="settingsContent">
-                    <button id="btnCloseSettings">&times;</button>
-                    <h2>Settings</h2>
-                    <div id="pauseBadge">Paused</div>
-                    <div class="setSection">
-                        <div class="setSectionTitle">Audio</div>
-                        <div class="setRow">
-                            <label>Music</label>
-                            <input id="sliderMusic" type="range" min="0" max="100" value="70" />
-                            <span class="val" id="valMusic">70</span>
-                        </div>
-                        <div class="setRow">
-                            <label>SFX</label>
-                            <input id="sliderSfx" type="range" min="0" max="100" value="80" />
-                            <span class="val" id="valSfx">80</span>
-                        </div>
-                        <div class="toggleRow">
-                            <button id="btnMuteMusic" class="toggleBtn">Music: ON</button>
-                            <button id="btnMuteAll" class="toggleBtn">All SFX: ON</button>
-                        </div>
-                        <button id="btnTestSfx" class="toggleBtn" style="margin-top:8px;width:100%;">Test SFX</button>
-                    </div>
-                    <div class="setSection">
-                        <div class="setSectionTitle">Controls & Tips</div>
-                        <div class="controlsBlock">
-                            <b>WASD</b> move · <b>Shift</b> run · <b>Space</b> jump<br />
-                            <b>LMB / RMB drag</b> orbit camera · <b>Scroll</b> zoom · <b>1-3</b> abilities<br />
-                            <b>Gamepad</b>: sticks move/look · A jump · X/Y/B abilities<br />
-                            Break <b>line of sight</b> behind structures to dodge fireballs & meteors.<br />
-                            Run out of the <b>red rings</b> before the spikes erupt!<br />
-                            <b>ESC</b> open/close settings panel
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div id="banner"></div>
 
             <!-- Touch controls -->
@@ -1151,6 +1143,59 @@
                     <div class="cdSweep"></div>
                 </div>
                 <div class="tBtn" id="btnJump">JUMP</div>
+            </div>
+        </div>
+
+        <div id="settingsPanel">
+            <div id="settingsBackdrop"></div>
+            <div id="settingsContent">
+                <button id="btnCloseSettings">&times;</button>
+                <h2>Settings</h2>
+                <div id="pauseBadge">Paused</div>
+                <div class="setSection">
+                    <div class="setSectionTitle">Audio</div>
+                    <div class="setRow">
+                        <label>Music</label>
+                        <input id="sliderMusic" type="range" min="0" max="100" value="70" />
+                        <span class="val" id="valMusic">70</span>
+                    </div>
+                    <div class="setRow">
+                        <label>SFX</label>
+                        <input id="sliderSfx" type="range" min="0" max="100" value="80" />
+                        <span class="val" id="valSfx">80</span>
+                    </div>
+                    <div class="setRow">
+                        <label>Player SFX</label>
+                        <input id="sliderPlayer" type="range" min="0" max="100" value="100" />
+                        <span class="val" id="valPlayer">100</span>
+                    </div>
+                    <div class="setRow">
+                        <label>Boss SFX</label>
+                        <input id="sliderBoss" type="range" min="0" max="100" value="100" />
+                        <span class="val" id="valBoss">100</span>
+                    </div>
+                    <div class="setRow">
+                        <label>Env SFX</label>
+                        <input id="sliderEnv" type="range" min="0" max="100" value="100" />
+                        <span class="val" id="valEnv">100</span>
+                    </div>
+                    <div class="toggleRow">
+                        <button id="btnMuteMusic" class="toggleBtn">Music: ON</button>
+                        <button id="btnMuteAll" class="toggleBtn">All SFX: ON</button>
+                    </div>
+                    <button id="btnTestSfx" class="toggleBtn" style="margin-top:8px;width:100%;">Test SFX</button>
+                </div>
+                <div class="setSection">
+                    <div class="setSectionTitle">Controls & Tips</div>
+                    <div class="controlsBlock">
+                        <b>WASD</b> move · <b>Shift</b> run · <b>Space</b> jump<br />
+                        <b>LMB / RMB drag</b> orbit camera · <b>Scroll</b> zoom · <b>1-3</b> abilities<br />
+                        <b>Gamepad</b>: sticks move/look · A jump · X/Y/B abilities<br />
+                        Break <b>line of sight</b> behind structures to dodge fireballs & meteors.<br />
+                        Run out of the <b>red rings</b> before the spikes erupt!<br />
+                        <b>ESC</b> open/close settings panel
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1190,11 +1235,13 @@
         function haptic(ms) { if (isTouch && navigator.vibrate) navigator.vibrate(ms); }
 
         /* ============================ AUDIO ============================ */
+        let audioListener = null;
         const AUDIO_BASE = './Game-Audio/';
         const AUDIO_FILES = {
             arrowFire: 'ARROW-Fire.wav', arrowVolley: 'ARROW-Shadow-Volley.wav', arrowNuke: 'ARROW-Nuke.wav',
             fireball: 'MAGIC-Fireball.wav', frostbolt: 'MAGIC-Frostbolt.wav', firefrost: 'MAGIC-Firefrost.wav',
-            spikes: 'BOSS-Incoming-Spikes-Earth-Rumble.wav', meteorHit: 'Meteor-Hit-Rumble.wav',
+            bossFireball: 'MAGIC-Fireball.wav', bossCone: 'MAGIC-Frostbolt.wav',
+            spikes: 'BOSS-Incoming-Spikes-Earth-Rumble.wav', meteorHit: 'BOSS-Meteor-Hit-Rumble.wav',
             walk: 'MOVEMENT-Walking-Regular.wav', run: 'MOVEMENT-Running-Regular.wav',
             musicMenu: 'MUSIC-Character-Selection-Screen.wav', musicImpact: 'MUSIC-Character-Selected-Impact.wav',
             musicBoss: 'MUSIC-Boss-Fight.wav', musicVictory: 'MUSIC-Killed-Boss.wav',
@@ -1210,6 +1257,7 @@
             let ctx = null;
             const buffers = {};
             const oneShots = new Map();
+            const musicOneShots = new Map();
             const pannerCache = new Map();
             const FADE = 0.06;
             let masterGain = null;
@@ -1226,7 +1274,7 @@
 
             function ensureCtx() {
                 if (!ctx) {
-                    if (audioListener && audioListener.context) {
+                    if (typeof audioListener !== 'undefined' && audioListener && audioListener.context) {
                         ctx = audioListener.context;
                     } else {
                         ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1239,7 +1287,7 @@
                     sfxGain = ctx.createGain();
                     sfxGain.gain.value = sfxVol;
                     sfxGain.connect(masterGain);
-                    if (audioListener) {
+                    if (typeof audioListener !== 'undefined' && audioListener) {
                         try {
                             audioListener.getInput().disconnect();
                             audioListener.getInput().connect(sfxGain);
@@ -1272,21 +1320,39 @@
                 ensureCtx();
                 const buf = await load(name);
                 if (!buf || !(buf instanceof AudioBuffer)) return;
+                const catVol = (CATEGORY_GAIN[getSfxCategory(name)] ?? 1) * (categoryVolumes[getSfxCategory(name)] ?? 1);
                 const existing = oneShots.get(name);
                 if (existing) fadeKill(existing);
                 const src = ctx.createBufferSource();
                 const gain = ctx.createGain();
-                src.buffer = buf; gain.gain.value = volume;
+                src.buffer = buf; gain.gain.value = volume * catVol;
                 src.connect(gain).connect(sfxGain || masterGain || ctx.destination);
                 src.start();
                 const inst = { src, gain };
                 oneShots.set(name, inst);
                 src.onended = () => { if (oneShots.get(name) === inst) oneShots.delete(name); };
             }
+            async function playMusicOneShot(name, volume = 1) {
+                ensureCtx();
+                const buf = await load(name);
+                if (!buf || !(buf instanceof AudioBuffer)) return;
+                const catVol = (CATEGORY_GAIN[getSfxCategory(name)] ?? 1) * (categoryVolumes[getSfxCategory(name)] ?? 1);
+                const existing = musicOneShots.get(name);
+                if (existing) fadeKill(existing);
+                const src = ctx.createBufferSource();
+                const gain = ctx.createGain();
+                src.buffer = buf; gain.gain.value = volume * catVol;
+                src.connect(gain).connect(musicGain || masterGain || ctx.destination);
+                src.start();
+                const inst = { src, gain };
+                musicOneShots.set(name, inst);
+                src.onended = () => { if (musicOneShots.get(name) === inst) musicOneShots.delete(name); };
+            }
             async function playOneShot3D(name, position, volume = 1) {
                 ensureCtx();
                 const buf = await load(name);
                 if (!buf || !(buf instanceof AudioBuffer)) return;
+                const catVol = (CATEGORY_GAIN[getSfxCategory(name)] ?? 1) * (categoryVolumes[getSfxCategory(name)] ?? 1);
 
                 const panner = ctx.createPanner();
                 panner.panningModel = 'HRTF';
@@ -1314,11 +1380,19 @@
                 const src = ctx.createBufferSource();
                 const gain = ctx.createGain();
                 src.buffer = buf;
-                gain.gain.value = volume;
+                gain.gain.value = volume * catVol;
                 src.connect(gain).connect(panner);
-                if (audioListener && audioListener.getInput) {
-                    panner.connect(audioListener.getInput());
-                } else {
+                let connected = false;
+                if (typeof audioListener !== 'undefined' && audioListener && audioListener.getInput) {
+                    try {
+                        const input = audioListener.getInput();
+                        if (input) {
+                            panner.connect(input);
+                            connected = true;
+                        }
+                    } catch (e) { /* 3D audio path failed, fallback below */ }
+                }
+                if (!connected) {
                     panner.connect(sfxGain || masterGain || ctx.destination);
                 }
                 src.start();
@@ -1332,13 +1406,14 @@
             async function startLoop(name, volume) {
                 const buf = await load(name);
                 if (!buf || !(buf instanceof AudioBuffer) || moveLoops[name]) return;
+                const catVol = (CATEGORY_GAIN[getSfxCategory(name)] ?? 1) * (categoryVolumes[getSfxCategory(name)] ?? 1);
                 const src = ctx.createBufferSource();
                 const gain = ctx.createGain();
                 src.buffer = buf; src.loop = true;
                 gain.gain.value = 0.0001;
                 src.connect(gain).connect(sfxGain || masterGain || ctx.destination);
                 src.start();
-                gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + MOVE_XFADE);
+                gain.gain.linearRampToValueAtTime(volume * catVol, ctx.currentTime + MOVE_XFADE);
                 moveLoops[name] = { src, gain };
             }
             function stopLoop(name) {
@@ -1393,8 +1468,9 @@
                 if (sfxGain && !allMuted) sfxGain.gain.value = v;
             }
             return {
-                ensureCtx, playOneShot, playOneShot3D, setMovementState, setMusic, hasMusic, preload,
+                ensureCtx, playOneShot, playOneShot3D, playMusicOneShot, setMovementState, setMusic, hasMusic, preload,
                 playStinger: (n, v) => playOneShot(n, v), playStinger3D: (n, v) => playOneShot3D(n, null, v),
+                playMusicStinger: (n, v) => playMusicOneShot(n, v),
                 toggleMusicMute, toggleAllMute, setMusicVolume, setSfxVolume,
                 get musicMuted() { return musicMuted; }, get allMuted() { return allMuted; }
             };
@@ -1411,13 +1487,32 @@
             'walk', 'run'
         ];
 
+        const SFX_CATEGORIES = {
+            player: new Set(['arrowFire', 'arrowVolley', 'arrowNuke', 'fireball', 'frostbolt', 'firefrost', 'movementJump', 'playerHitGrunt', 'walk', 'run']),
+            boss: new Set(['bossIncomingSwell1', 'bossExplosion1', 'bossExplosion2', 'bossExplosion3', 'bossDeath', 'bossFootstep', 'bossFrustrated', 'bossPhaseChangeHorn', 'bossShadowPortal']),
+            env: new Set(['spikes', 'meteorHit', 'lightningStrike1', 'lightningStrike2'])
+        };
+
+        function getSfxCategory(name) {
+            if (SFX_CATEGORIES.player.has(name)) return 'player';
+            if (SFX_CATEGORIES.boss.has(name)) return 'boss';
+            if (SFX_CATEGORIES.env.has(name)) return 'env';
+            return 'sfx';
+        }
+
+        const DEFAULT_CATEGORY_VOLS = { player: 1, boss: 1, env: 1 };
+        const CATEGORY_GAIN = { player: 1.0, boss: 2.2, env: 1.6 };
+        const CATEGORY_VOL_KEY = 'hexbow_cat_vols';
+        let categoryVolumes = { ...DEFAULT_CATEGORY_VOLS };
+        try {
+            const saved = localStorage.getItem(CATEGORY_VOL_KEY);
+            if (saved) categoryVolumes = { ...categoryVolumes, ...JSON.parse(saved) };
+        } catch (e) { /* ignore */ }
+
         /* ============================ INTRO VIDEO ============================ */
-        const INTRO_URL = AUDIO_BASE + 'Hex-And-Bow-Intro-Video.m4v';
         const introEl = document.getElementById('intro');
         const introVid = document.getElementById('introVid');
-        const introPlayBtn = document.getElementById('introPlay');
         const skipIntroBtn = document.getElementById('skipIntro');
-        introVid.src = INTRO_URL;
         let introDone = false;
 
         function finishIntro() {
@@ -1431,24 +1526,41 @@
             AUDIO.setMusic('musicMenu', { loop: true, volume: 0.5 });
             AUDIO.preload(PRELOAD_SFX);
         }
+
         introVid.addEventListener('ended', finishIntro);
-        introVid.addEventListener('error', finishIntro);
+
         skipIntroBtn.addEventListener('click', e => { e.stopPropagation(); AUDIO.ensureCtx(); finishIntro(); });
         skipIntroBtn.addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); AUDIO.ensureCtx(); finishIntro(); }, { passive: false });
-        introPlayBtn.addEventListener('click', e => {
-            e.stopPropagation();
+
+        // User click/touch un-mutes video and unlocks WebAudio context
+        function unmuteIntroOnUserGesture() {
+            try { introVid.muted = false; } catch (e) { }
             AUDIO.ensureCtx();
-            introVid.muted = false;
-            introVid.play().then(() => { introPlayBtn.style.display = 'none'; }).catch(finishIntro);
-        });
+            window.removeEventListener('pointerdown', unmuteIntroOnUserGesture);
+            window.removeEventListener('keydown', unmuteIntroOnUserGesture);
+            window.removeEventListener('touchstart', unmuteIntroOnUserGesture);
+        }
+        window.addEventListener('pointerdown', unmuteIntroOnUserGesture);
+        window.addEventListener('keydown', unmuteIntroOnUserGesture);
+        window.addEventListener('touchstart', unmuteIntroOnUserGesture);
 
         // Replay flow: returning from a victory skips the intro entirely (AAA convention)
         if (sessionStorage.getItem('fg_skipIntro') === '1') {
             sessionStorage.removeItem('fg_skipIntro');
             finishIntro();
         } else {
+            introVid.load();
             introVid.muted = false;
-            introVid.play().then(() => { introPlayBtn.style.display = 'none'; }).catch(() => { /* wait for Play button */ });
+            const playPromise = introVid.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    AUDIO.ensureCtx();
+                }).catch(() => {
+                    // If browser policy blocks unmuted autoplay, play video muted on screen and unmute on first gesture
+                    introVid.muted = true;
+                    introVid.play().catch(() => { });
+                });
+            }
         }
 
         function unlockAudio() {
@@ -1471,12 +1583,13 @@
         let settingsOpen = false;
         function openSettings() {
             if (typeof playerDead !== 'undefined' && playerDead) return;
-            if (typeof started !== 'undefined' && !started) return;
             settingsOpen = true;
             const panel = document.getElementById('settingsPanel');
             const btn = document.getElementById('settingsBtn');
             if (panel) panel.classList.add('open');
             if (btn) btn.classList.add('open');
+            const pauseBadge = document.getElementById('pauseBadge');
+            if (pauseBadge) pauseBadge.style.display = (typeof started !== 'undefined' && started) ? 'inline-block' : 'none';
         }
         function closeSettings() {
             settingsOpen = false;
@@ -1490,6 +1603,7 @@
         function updateMuteBtnLabels() {
             const musicBtn = document.getElementById('btnMuteMusic');
             const allBtn = document.getElementById('btnMuteAll');
+            const menuAudioBtn = document.getElementById('menuAudioBtn');
             if (musicBtn) {
                 musicBtn.textContent = 'Music: ' + (AUDIO.musicMuted ? 'OFF' : 'ON');
                 musicBtn.classList.toggle('off', AUDIO.musicMuted);
@@ -1498,14 +1612,35 @@
                 allBtn.textContent = 'All SFX: ' + (AUDIO.allMuted ? 'OFF' : 'ON');
                 allBtn.classList.toggle('off', AUDIO.allMuted);
             }
+            if (menuAudioBtn) {
+                menuAudioBtn.textContent = AUDIO.musicMuted ? '🔇 Music: OFF' : '🔊 Music: ON';
+                menuAudioBtn.classList.toggle('off', AUDIO.musicMuted);
+            }
         }
 
         const settingsBtn = document.getElementById('settingsBtn');
         const btnCloseSettings = document.getElementById('btnCloseSettings');
         const settingsBackdrop = document.getElementById('settingsBackdrop');
+        const menuAudioBtn = document.getElementById('menuAudioBtn');
+        const menuSettingsBtn = document.getElementById('menuSettingsBtn');
         if (settingsBtn) settingsBtn.addEventListener('click', toggleSettings);
         if (btnCloseSettings) btnCloseSettings.addEventListener('click', closeSettings);
         if (settingsBackdrop) settingsBackdrop.addEventListener('click', closeSettings);
+        if (menuAudioBtn) {
+            menuAudioBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                AUDIO.ensureCtx();
+                AUDIO.toggleMusicMute();
+                updateMuteBtnLabels();
+            });
+        }
+        if (menuSettingsBtn) {
+            menuSettingsBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                AUDIO.ensureCtx();
+                toggleSettings();
+            });
+        }
 
         const btnMuteMusic = document.getElementById('btnMuteMusic');
         const btnMuteAll = document.getElementById('btnMuteAll');
@@ -1516,8 +1651,14 @@
 
         const sliderMusic = document.getElementById('sliderMusic');
         const sliderSfx = document.getElementById('sliderSfx');
+        const sliderPlayer = document.getElementById('sliderPlayer');
+        const sliderBoss = document.getElementById('sliderBoss');
+        const sliderEnv = document.getElementById('sliderEnv');
         const valMusic = document.getElementById('valMusic');
         const valSfx = document.getElementById('valSfx');
+        const valPlayer = document.getElementById('valPlayer');
+        const valBoss = document.getElementById('valBoss');
+        const valEnv = document.getElementById('valEnv');
         if (sliderMusic) sliderMusic.addEventListener('input', e => {
             const v = parseInt(e.target.value) / 100;
             AUDIO.setMusicVolume(v);
@@ -1528,6 +1669,36 @@
             AUDIO.setSfxVolume(v);
             if (valSfx) valSfx.textContent = e.target.value;
         });
+        if (sliderPlayer) {
+            sliderPlayer.value = Math.round((categoryVolumes.player ?? 1) * 100);
+            if (valPlayer) valPlayer.textContent = sliderPlayer.value;
+            sliderPlayer.addEventListener('input', e => {
+                const v = parseInt(e.target.value) / 100;
+                categoryVolumes.player = v;
+                if (valPlayer) valPlayer.textContent = e.target.value;
+                try { localStorage.setItem(CATEGORY_VOL_KEY, JSON.stringify(categoryVolumes)); } catch (err) { }
+            });
+        }
+        if (sliderBoss) {
+            sliderBoss.value = Math.round((categoryVolumes.boss ?? 1) * 100);
+            if (valBoss) valBoss.textContent = sliderBoss.value;
+            sliderBoss.addEventListener('input', e => {
+                const v = parseInt(e.target.value) / 100;
+                categoryVolumes.boss = v;
+                if (valBoss) valBoss.textContent = e.target.value;
+                try { localStorage.setItem(CATEGORY_VOL_KEY, JSON.stringify(categoryVolumes)); } catch (err) { }
+            });
+        }
+        if (sliderEnv) {
+            sliderEnv.value = Math.round((categoryVolumes.env ?? 1) * 100);
+            if (valEnv) valEnv.textContent = sliderEnv.value;
+            sliderEnv.addEventListener('input', e => {
+                const v = parseInt(e.target.value) / 100;
+                categoryVolumes.env = v;
+                if (valEnv) valEnv.textContent = e.target.value;
+                try { localStorage.setItem(CATEGORY_VOL_KEY, JSON.stringify(categoryVolumes)); } catch (err) { }
+            });
+        }
         addEventListener('keydown', e => {
             if (e.code === 'Escape') toggleSettings();
         });
@@ -1634,7 +1805,7 @@
 
         const BASE_FOV = 50;
         const camera = new THREE.PerspectiveCamera(BASE_FOV, innerWidth / innerHeight, 0.08, 1600);
-        const audioListener = new THREE.AudioListener();
+        audioListener = new THREE.AudioListener();
         camera.add(audioListener);
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x0d0f26, 0.0195);
@@ -3828,7 +3999,7 @@ void main(){
 
                     maxLife: 0.7 + Math.random() * 0.6,
 
-                    size: 12 + Math.random() * 16,
+                    size: 2 + Math.random() * 16,
 
                 };
 
@@ -4395,7 +4566,7 @@ void main(){
             menuRunning = false;
             ui.menu.style.display = 'none';
             ui.loading.style.display = 'flex';
-            AUDIO.playStinger('musicImpact', 0.7);
+            AUDIO.playMusicStinger('musicImpact', 0.7);
             AUDIO.setMusic('musicBoss', { loop: true, volume: 0.45 });
             if (isTouch && document.documentElement.requestFullscreen)
                 document.documentElement.requestFullscreen().catch(() => { });
@@ -4867,6 +5038,7 @@ void main(){
         function atkFireball() {
             const d = bossAct('fireball');
             AUDIO.playOneShot3D('bossIncomingSwell1', bossChest());
+            AUDIO.playOneShot3D('bossFireball', bossChest());
             schedule(Math.min(d * 0.45, d - 0.1), () => {
                 if (boss.dead || playerDead) return;
                 const from = bossChest().add(new THREE.Vector3(0, boss.height * 0.15, 0));
@@ -4931,6 +5103,7 @@ void main(){
         function atkCone() {
             const d = bossAct('cone');
             AUDIO.playOneShot3D('bossIncomingSwell1', bossChest());
+            AUDIO.playOneShot3D('bossCone', bossChest());
             schedule(d * 0.45, () => {
                 if (boss.dead || playerDead) return;
                 const from = bossChest();

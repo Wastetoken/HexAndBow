@@ -10,7 +10,7 @@ A self-contained browser RPG demo built with Three.js. Pick your champion and ta
 
 - **Gameplay video:** [Watch on Google Drive](https://drive.google.com/file/d/1sYsqgrMbtqDQHtUEH1QLQ1tDCyBBD6ML/view?usp=drive_link)
 - **CodePen:** [codepen.io/OSINT619/pen/dPNgmaR](https://codepen.io/OSINT619/pen/dPNgmaR)
-- **Local:** Download HexAndBow.html and open it in any modern browser — no build step needed, but internet access is required (Three.js and all audio/3D assets are loaded from remote CDN/storage).
+- **Local:** Download `index.html` and open it in any modern browser — no build step needed, but internet access is required (Three.js and all audio/3D assets are loaded from remote CDN/storage).
 
 ---
 
