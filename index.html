@@ -1367,15 +1367,20 @@
             aspect-ratio: 532 / 186;     /* trimmed artwork ratio */
             container-type: inline-size;
             container-name: actionbar;
+            overflow: hidden;
+            filter: drop-shadow(0 8px 22px rgba(0, 0, 0, .6));
         }
+        /* Full 1920x1080 class sheet, cropped to the 532x186 bar region (offset 694,447) */
         #actionBarArt {
             display: block;
-            width: 100%;
-            height: 100%;
+            position: absolute;
+            width: 360.902%;   /* 1920 / 532 */
+            height: 580.645%;  /* 1080 / 186 */
+            left: -130.451%;   /* -694 / 532 */
+            top: -240.323%;    /* -447 / 186 */
             pointer-events: none;
             user-select: none;
             -webkit-user-drag: none;
-            filter: drop-shadow(0 8px 22px rgba(0, 0, 0, .6));
         }
         /* icon wells measured off the trimmed 532x186 artwork */
         .slot {
@@ -1454,7 +1459,7 @@
 
         <div id="intro">
             <video id="introVid" playsinline preload="auto">
-                <source src="./Intro-Video/Hex-And-Bow-Intro-Video.m4v" type="video/mp4" />
+                <source src="https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/Hex-And-Bow-Intro-Video.m4v" type="video/mp4" />
             </video>
             <div id="skipIntro">Skip ▸</div>
         </div>
@@ -1665,19 +1670,19 @@
         let audioListener = null;
         const AUDIO_BASE = '';
         const AUDIO_FILES = {
-            arrowFire: '/__l5e/assets-v1/63f802ef-4905-4914-80b5-d765114bc858/ARROW-Fire.wav', arrowVolley: '/__l5e/assets-v1/b6569bf4-52b9-4cbc-be3d-04e215eb0ed7/ARROW-Shadow-Volley.wav', arrowNuke: '/__l5e/assets-v1/bd392f1d-9c35-4ac8-83b0-cc28eaa06501/ARROW-Nuke.wav',
-            fireball: '/__l5e/assets-v1/a32445e4-de98-426e-bc8c-78001d9a150e/MAGIC-Fireball.wav', frostbolt: '/__l5e/assets-v1/e19bace4-921a-4821-8ac0-61a82a97e224/MAGIC-Frostbolt.wav', firefrost: '/__l5e/assets-v1/5c703646-3dcf-4abb-9840-f3e2685eca75/MAGIC-Firefrost.wav',
-            bossFireball: '/__l5e/assets-v1/a32445e4-de98-426e-bc8c-78001d9a150e/MAGIC-Fireball.wav', bossCone: '/__l5e/assets-v1/e19bace4-921a-4821-8ac0-61a82a97e224/MAGIC-Frostbolt.wav',
-            spikes: '/__l5e/assets-v1/ede9b4b9-5381-4fc0-9546-3c0e3194f0a6/BOSS-Incoming-Spikes-Earth-Rumble.wav', meteorHit: '/__l5e/assets-v1/58385739-a07e-48b6-a26f-21f01d591f45/BOSS-Meteor-Hit-Rumble.wav',
-            walk: '/__l5e/assets-v1/8b8e18dd-6bd3-42f0-86f4-46ea0d670b14/MOVEMENT-Walking-Regular.wav', run: '/__l5e/assets-v1/04d366ed-3569-441e-88f9-670a1fba9d96/MOVEMENT-Running-Regular.wav',
-            musicMenu: '/__l5e/assets-v1/1d304eec-10c3-4b9d-8917-c2246c2bb3f7/MUSIC-Character-Selection-Screen.wav', musicImpact: '/__l5e/assets-v1/448cc226-80a2-4836-ae6d-4e36447d6f51/MUSIC-Character-Selected-Impact.wav',
-            musicBoss: '/__l5e/assets-v1/37b4ae0f-2d46-4166-b3a6-366f9925c7a3/MUSIC-Boss-Fight.wav', musicVictory: '/__l5e/assets-v1/4d444d0e-33ab-4168-b1b8-a80e082b05a8/MUSIC-Killed-Boss.wav',
-            lightningStrike1: '/__l5e/assets-v1/a40d9c80-b790-4fd3-a6de-650b42a7cbe7/Lightning-Strike-1.wav', lightningStrike2: '/__l5e/assets-v1/c30e1a08-cd05-4a1a-a468-a6685f973e91/Lightning-Strike-2.wav',
-            bossIncomingSwell1: '/__l5e/assets-v1/60c443a7-5815-45f9-8fc5-dc8b5867a8e7/Incoming-Swell-1.wav',
-            bossExplosion1: '/__l5e/assets-v1/844e1c73-42aa-496a-9c0b-6195b30ae0a9/Explosion-1.wav', bossExplosion2: '/__l5e/assets-v1/87ca0a2d-fb96-467f-a32c-0532cf84b60b/Explosion-2.wav', bossExplosion3: '/__l5e/assets-v1/de240585-68a1-4d08-ac6b-b3335d2654e5/Explosion-3.wav',
-            bossDeath: '/__l5e/assets-v1/80f9df37-f8a4-4e2d-9499-34f3885b02f2/BOSS-Death.wav', bossFootstep: '/__l5e/assets-v1/6f348d59-32a5-4f7d-9c38-912a31b221a4/BOSS-Footstep.wav', bossFrustrated: '/__l5e/assets-v1/18305f48-ee4f-44c5-8ff0-9c3d6af1c328/BOSS-Frustrated.wav',
-            bossPhaseChangeHorn: '/__l5e/assets-v1/d7ce3125-86c1-4439-891f-7995b7da1f34/BOSS-Phase-Change-Horn-Alert.wav', bossShadowPortal: '/__l5e/assets-v1/7d8c6419-8441-4b79-bd05-5156b586f316/BOSS-Shadow-Portal.wav',
-            movementJump: '/__l5e/assets-v1/d5be0ac1-e8c7-40f6-a510-0e4ffc0f6c7e/MOVEMENT-Jump.wav', playerHitGrunt: '/__l5e/assets-v1/b77207e8-b3a2-47c2-a152-e1fc79e79276/PLAYER-Hit-Grunt.wav',
+            arrowFire: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/ARROW-Fire.wav', arrowVolley: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/ARROW-Shadow-Volley.wav', arrowNuke: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/ARROW-Nuke.wav',
+            fireball: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MAGIC-Fireball.wav', frostbolt: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MAGIC-Frostbolt.wav', firefrost: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MAGIC-Firefrost.wav',
+            bossFireball: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MAGIC-Fireball.wav', bossCone: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MAGIC-Frostbolt.wav',
+            spikes: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/BOSS-Incoming-Spikes-Earth-Rumble.wav', meteorHit: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/BOSS-Meteor-Hit-Rubble.wav',
+            walk: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MOVEMENT-Walking-Regular.wav', run: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MOVEMENT-Running-Regular.wav',
+            musicMenu: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MUSIC-Character-Selection-Screen.wav', musicImpact: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MUSIC-Character-Selected-Impact.wav',
+            musicBoss: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MUSIC-Boss-Fight.wav', musicVictory: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MUSIC-Killed-Boss.wav',
+            lightningStrike1: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/Lightning-Strike-1.wav', lightningStrike2: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/Lightning-Strike-2.wav',
+            bossIncomingSwell1: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/Incoming-Swell-1.wav',
+            bossExplosion1: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/Explosion-1.wav', bossExplosion2: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/Explosion-2.wav', bossExplosion3: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/Explosion-3.wav',
+            bossDeath: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/BOSS-Death.wav', bossFootstep: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/BOSS-Footstep.wav', bossFrustrated: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/BOSS-Frustrated.wav',
+            bossPhaseChangeHorn: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/BOSS-Phase-Change-Horn-Alert.wav', bossShadowPortal: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/BOSS-Shadow-Portal.wav',
+            movementJump: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/MOVEMENT-Jump.wav', playerHitGrunt: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/Game-Audio/PLAYER-Hit-Grunt.wav',
         };
 
         const AUDIO = (() => {
@@ -2144,8 +2149,8 @@
         // Class-specific MMORPG action-bar sheets. Each PNG is ONE finished artwork
         // (frame + all 3 icon slots already composited) — never sliced.
         const CLASS_UI = {
-            mage: '/__l5e/assets-v1/559907ee-5d4f-4968-b009-0c58cfbe4fd5/Mage-UI.png',
-            archer: '/__l5e/assets-v1/2b601428-a3b1-4dd1-8d8a-bbc766e939ae/Archer-UI.png',
+            mage: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/MMORPG%20UI/Mage-UI.png',
+            archer: 'https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/MMORPG%20UI/Archer-UI.png',
         };
 
         const CLASSES = {
