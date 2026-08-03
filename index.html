@@ -1062,6 +1062,391 @@
             }
         }
     </style>
+
+    <style>
+        /* =========================================================
+           HUD LAYOUT — 21 x 12 grid, ported 1:1 from the HUD builder
+           export. Every frame is positioned in % of the viewport so
+           the whole HUD scales with the window.
+           col/row values (1-indexed, end-exclusive):
+             portrait   col 1-4   row 1-4
+             enemy tgt  col 7-15  row 1-3
+             mini map   col 18-21 row 1-5
+             quest log  col 1-5   row 5-12
+             action bar col 4-18  row 9-12
+             inventory  col 17-21 row 7-12
+           ========================================================= */
+        #hud {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity .8s;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        #hud.visible { opacity: 1; }
+
+        .hudFrame {
+            position: absolute;
+            box-sizing: border-box;
+        }
+        .hudFrame .frameArt {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .55));
+        }
+
+        /* ---------- Portrait + vitals ---------- */
+        /* Every frame is sized from the artwork's own aspect ratio so the
+           overlays (bars, discs, grids) always land inside the painted cavity. */
+        #frPortrait {
+            left: 0.8%;
+            top: 1.5%;
+            width: clamp(96px, 12.5vw, 210px);
+            aspect-ratio: 1549 / 1233;
+        }
+        .portraitDisc {
+            position: absolute;
+            left: 34.5%;
+            top: 15.5%;
+            width: 32.5%;
+            height: 49%;
+            border-radius: 50%;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 35%, #241a12, #060404 78%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #portraitSigil {
+            position: relative;
+            z-index: 2;
+            font-size: clamp(13px, 1.3vw, 26px);
+            color: #f7e0a4;
+            text-shadow: 0 0 14px rgba(255, 190, 90, .85);
+        }
+        #portraitHpFill {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 100%;
+            background: linear-gradient(0deg, rgba(224, 75, 75, .8), rgba(150, 30, 30, .25));
+            transition: height .15s;
+            z-index: 1;
+        }
+        #portraitHpTxt {
+            position: absolute;
+            bottom: 4%;
+            width: 100%;
+            text-align: center;
+            z-index: 3;
+            font-size: clamp(7px, .58vw, 11px);
+            letter-spacing: .08em;
+            color: #ffe9b0;
+            text-shadow: 0 1px 3px #000;
+        }
+        #frVitals {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            left: calc(0.8% + clamp(96px, 12.5vw, 210px) * 0.72);
+            top: 3%;
+            width: clamp(130px, 15vw, 260px);
+            align-items: flex-start;
+        }
+        .frameName {
+            color: #f0d896;
+            font-size: clamp(8px, .74vw, 14px);
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            text-shadow: 0 1px 4px #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+        #hpBarO {
+            height: clamp(9px, 1vw, 15px);
+            border-radius: 3px;
+            background: rgba(0, 0, 0, .8);
+            border: 1px solid rgba(240, 200, 120, .38);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .6);
+            overflow: hidden;
+        }
+        #hpBar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #7a1f1f, #e04b4b);
+            transition: width .12s;
+        }
+
+        /* ---------- Enemy target frame ---------- */
+        #bossFrame {
+            left: 50%;
+            transform: translateX(-50%);
+            top: 1.5%;
+            width: clamp(320px, 38vw, 720px);
+            aspect-ratio: 2237 / 485;
+            display: none;
+        }
+        #bossSigil {
+            position: absolute;
+            left: 3.2%;
+            top: 22%;
+            width: 16%;
+            height: 56%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(11px, 1.15vw, 22px);
+            color: #ff8a5a;
+            text-shadow: 0 0 12px rgba(255, 80, 30, .8);
+        }
+        #bossName {
+            position: absolute;
+            left: 24%;
+            top: 52%;
+            height: 32%;
+            display: flex;
+            align-items: center;
+            max-width: 45%;
+            color: #ffcf9a;
+            font-size: clamp(8px, .76vw, 14px);
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 80, 30, .55), 0 1px 3px #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #bossHpO {
+            position: absolute;
+            left: 23%;
+            top: 16%;
+            width: 70.5%;
+            height: 32%;
+            background: rgba(6, 4, 3, .9);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        #bossHpI {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #7a1f1f, #ff5a2a, #ffb02a);
+            background-size: 300% 100%;
+            animation: bossSheen 3s linear infinite;
+            transition: width .15s;
+        }
+        @keyframes bossSheen {
+            0% { background-position: 0% 0 }
+            100% { background-position: 300% 0 }
+        }
+        .phaseMark {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, .45);
+        }
+        #bossHpTxt {
+            position: absolute;
+            right: 6.5%;
+            top: 52%;
+            height: 32%;
+            display: flex;
+            align-items: center;
+            color: #e8c9a0;
+            font-size: clamp(7px, .6vw, 12px);
+            letter-spacing: .12em;
+            text-shadow: 0 1px 3px #000;
+        }
+
+        /* ---------- Mini map ---------- */
+        #frMap {
+            right: 1%;
+            top: 1.5%;
+            width: clamp(110px, 12vw, 210px);
+            aspect-ratio: 1598 / 1828;
+        }
+        #miniMap {
+            position: absolute;
+            left: 11%;
+            top: 13%;
+            width: 76.5%;
+            height: 67%;
+            border-radius: 50%;
+        }
+
+        /* ---------- Quest log ---------- */
+        #frQuests {
+            left: 0.8%;
+            top: 32%;
+            width: clamp(130px, 13vw, 230px);
+            aspect-ratio: 1767 / 2443;
+        }
+        #questList {
+            position: absolute;
+            left: 13%;
+            top: 17%;
+            width: 75.5%;
+            height: 71%;
+            overflow: hidden;
+            color: #cdbf95;
+            font-size: clamp(7px, .62vw, 12px);
+            line-height: 1.35;
+        }
+        .questRow {
+            padding: 3px 0;
+            display: flex;
+            gap: 5px;
+            align-items: baseline;
+        }
+        .qDot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #f0d896;
+            box-shadow: 0 0 6px rgba(240, 200, 120, .8);
+            flex: 0 0 auto;
+        }
+        .questRow.qSub { color: #93835f; }
+        #qObjective { color: #f0d896; letter-spacing: .03em; }
+
+        /* ---------- Inventory ---------- */
+        #frInventory {
+            right: 1%;
+            bottom: 3%;
+            width: clamp(140px, 14vw, 250px);
+            aspect-ratio: 1701 / 1863;
+        }
+        #invGrid {
+            position: absolute;
+            left: 11.8%;
+            top: 18%;
+            width: 79%;
+            height: 71%;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 1.5%;
+        }
+        .invSlot {
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(8px, .8vw, 15px);
+            color: #e6cd93;
+            text-shadow: 0 1px 3px #000;
+        }
+
+        /* ---------- Action bar ---------- */
+        #actionBar {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 1.5%;
+            width: min(60vw, 640px);
+            height: clamp(90px, 16vh, 176px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            pointer-events: none;
+        }
+        #actionBarInner {
+            position: relative;
+            height: min(100%, 168px);
+            aspect-ratio: 532 / 186;     /* trimmed artwork ratio */
+            container-type: inline-size;
+            container-name: actionbar;
+        }
+        #actionBarArt {
+            display: block;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            filter: drop-shadow(0 8px 22px rgba(0, 0, 0, .6));
+        }
+        /* icon wells measured off the trimmed 532x186 artwork */
+        .slot {
+            position: absolute;
+            top: 33%;
+            height: 42%;
+            width: 11.3%;
+            border-radius: 8px;
+            overflow: hidden;
+            background: transparent;
+        }
+        #actionBar #slot0, #slot0 { left: 25%; }
+        #actionBar #slot1, #slot1 { left: 42.9%; }
+        #actionBar #slot2, #slot2 { left: 60.2%; }
+        .slot .key {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: clamp(8px, 5cqw, 14px);
+            font-weight: 700;
+            color: #ffe9b0;
+            text-shadow: 0 1px 4px #000;
+            z-index: 3;
+        }
+        .slot .label {
+            position: absolute;
+            bottom: calc(100% + 3px);
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: clamp(7px, 3cqw, 12px);
+            color: #ffe9b0;
+            text-shadow: 0 1px 4px #000;
+            z-index: 3;
+            white-space: nowrap;
+        }
+        .slot .cdSweep {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .68);
+            transform-origin: bottom;
+            transform: scaleY(0);
+            z-index: 2;
+        }
+        .slot .cdNum {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(10px, 9cqw, 22px);
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 8px #000, 0 0 16px #000;
+            z-index: 3;
+        }
+
+        /* ---------- Responsive: keep only the essentials on small screens ---------- */
+        @media (max-width: 1100px), (max-height: 620px) {
+            #frQuests, #frInventory { display: none !important; }
+        }
+        @media (pointer: coarse) {
+            #frQuests, #frInventory, #frMap { display: none !important; }
+            #actionBar { display: none !important; }
+        }
+
+        /* touch buttons sat far too high above the thumb line */
+        #touchBtns {
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -1069,7 +1454,7 @@
 
         <div id="intro">
             <video id="introVid" playsinline preload="auto">
-                <source src="./Intro-Video/Hex-And-Bow-Intro-Video.m4v" type="video/mp4" />
+                <source src="/__l5e/assets-v1/caf29745-736a-4a86-9cdb-b267c301a157/Hex-And-Bow-Intro-Video.m4v" type="video/mp4" />
             </video>
             <div id="skipIntro">Skip ▸</div>
         </div>
@@ -1095,7 +1480,26 @@
         </div>
 
         <div id="hud">
-            <div id="bossFrame">
+            <!-- ===== Portrait + vitals ===== -->
+            <div class="hudFrame" id="frPortrait">
+                <img class="frameArt" src="https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/MMORPG%20UI/PORTRAIT%20FRAME.png" alt="" draggable="false" />
+                <div class="portraitDisc">
+                    <div id="portraitHpFill"></div>
+                    <div id="portraitSigil">&#10022;</div>
+                    <div id="portraitHpTxt">100%</div>
+                </div>
+            </div>
+            <div id="frVitals">
+                <div class="frameName" id="playerName">Hero</div>
+                <div class="barO" id="hpBarO">
+                    <div id="hpBar"></div>
+                </div>
+            </div>
+
+            <!-- ===== Enemy target frame (grid col 7-15 / row 1-3) ===== -->
+            <div class="hudFrame" id="bossFrame">
+                <img class="frameArt" src="https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/MMORPG%20UI/ENEMY%20TARGET.png" alt="" draggable="false" />
+                <div id="bossSigil">&#9760;</div>
                 <div id="bossName">Guardian of the First Gate</div>
                 <div id="bossHpO">
                     <div id="bossHpI"></div>
@@ -1105,24 +1509,47 @@
                 </div>
                 <div id="bossHpTxt"></div>
             </div>
-            <div id="statusPanel">
-                <div class="name" id="playerName">Hero</div>
-                <div class="barO">
-                    <div id="hpBar"></div>
+
+            <!-- ===== Mini map (grid col 18-21 / row 1-5) ===== -->
+            <div class="hudFrame" id="frMap">
+                <img class="frameArt" src="https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/MMORPG%20UI/MINI%20MAP.png" alt="" draggable="false" />
+                <canvas id="miniMap" width="256" height="256"></canvas>
+            </div>
+
+            <!-- ===== Quest log (grid col 1-5 / row 5-12) ===== -->
+            <div class="hudFrame" id="frQuests">
+                <img class="frameArt" src="https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/MMORPG%20UI/QUESTS.png" alt="" draggable="false" />
+                <div id="questList">
+                    <div class="questRow"><span class="qDot"></span><span id="qObjective">Defeat the Guardian of the First Gate</span></div>
+                    <div class="questRow qSub"><span id="qPhase">Phase 1 &middot; 100%</span></div>
+                    <div class="questRow qSub">Break line of sight to dodge meteors</div>
+                    <div class="questRow qSub">Leave the red rings before they erupt</div>
+                    <div class="questRow qSub" id="qTime">Elapsed 0:00</div>
                 </div>
             </div>
+
+            <!-- ===== Inventory (grid col 17-21 / row 7-12) ===== -->
+            <div class="hudFrame" id="frInventory">
+                <img class="frameArt" src="https://pub-a56d70d158b1414d83c3856ea210601c.r2.dev/Pro%20Longbow%20Pack/MMORPG%20UI/INVENTORY.png" alt="" draggable="false" />
+                <div id="invGrid"></div>
+            </div>
+
+            <!-- ===== Action bar (grid col 4-18 / row 9-12) ===== -->
             <div id="actionBar">
-                <img id="actionBarArt" src="" alt="" draggable="false" />
-                <div class="slot" id="slot0"><span class="key">1</span><span class="label"></span>
-                    <div class="cdSweep"></div><span class="cdNum"></span>
-                </div>
-                <div class="slot" id="slot1"><span class="key">2</span><span class="label"></span>
-                    <div class="cdSweep"></div><span class="cdNum"></span>
-                </div>
-                <div class="slot" id="slot2"><span class="key">3</span><span class="label"></span>
-                    <div class="cdSweep"></div><span class="cdNum"></span>
+                <div id="actionBarInner">
+                    <img id="actionBarArt" src="" alt="" draggable="false" />
+                    <div class="slot" id="slot0"><span class="key">1</span><span class="label"></span>
+                        <div class="cdSweep"></div><span class="cdNum"></span>
+                    </div>
+                    <div class="slot" id="slot1"><span class="key">2</span><span class="label"></span>
+                        <div class="cdSweep"></div><span class="cdNum"></span>
+                    </div>
+                    <div class="slot" id="slot2"><span class="key">3</span><span class="label"></span>
+                        <div class="cdSweep"></div><span class="cdNum"></span>
+                    </div>
                 </div>
             </div>
+
             <button id="settingsBtn" aria-label="Settings">&#9881;</button>
             <div id="banner"></div>
 
@@ -1236,21 +1663,21 @@
 
         /* ============================ AUDIO ============================ */
         let audioListener = null;
-        const AUDIO_BASE = './Game-Audio/';
+        const AUDIO_BASE = '';
         const AUDIO_FILES = {
-            arrowFire: 'ARROW-Fire.wav', arrowVolley: 'ARROW-Shadow-Volley.wav', arrowNuke: 'ARROW-Nuke.wav',
-            fireball: 'MAGIC-Fireball.wav', frostbolt: 'MAGIC-Frostbolt.wav', firefrost: 'MAGIC-Firefrost.wav',
-            bossFireball: 'MAGIC-Fireball.wav', bossCone: 'MAGIC-Frostbolt.wav',
-            spikes: 'BOSS-Incoming-Spikes-Earth-Rumble.wav', meteorHit: 'BOSS-Meteor-Hit-Rumble.wav',
-            walk: 'MOVEMENT-Walking-Regular.wav', run: 'MOVEMENT-Running-Regular.wav',
-            musicMenu: 'MUSIC-Character-Selection-Screen.wav', musicImpact: 'MUSIC-Character-Selected-Impact.wav',
-            musicBoss: 'MUSIC-Boss-Fight.wav', musicVictory: 'MUSIC-Killed-Boss.wav',
-            lightningStrike1: 'Lightning-Strike-1.wav', lightningStrike2: 'Lightning-Strike-2.wav',
-            bossIncomingSwell1: 'Incoming-Swell-1.wav',
-            bossExplosion1: 'Explosion-1.wav', bossExplosion2: 'Explosion-2.wav', bossExplosion3: 'Explosion-3.wav',
-            bossDeath: 'BOSS-Death.wav', bossFootstep: 'BOSS-Footstep.wav', bossFrustrated: 'BOSS-Frustrated.wav',
-            bossPhaseChangeHorn: 'BOSS-Phase-Change-Horn-Alert.wav', bossShadowPortal: 'BOSS-Shadow-Portal.wav',
-            movementJump: 'MOVEMENT-Jump.wav', playerHitGrunt: 'PLAYER-Hit-Grunt.wav',
+            arrowFire: '/__l5e/assets-v1/63f802ef-4905-4914-80b5-d765114bc858/ARROW-Fire.wav', arrowVolley: '/__l5e/assets-v1/b6569bf4-52b9-4cbc-be3d-04e215eb0ed7/ARROW-Shadow-Volley.wav', arrowNuke: '/__l5e/assets-v1/bd392f1d-9c35-4ac8-83b0-cc28eaa06501/ARROW-Nuke.wav',
+            fireball: '/__l5e/assets-v1/a32445e4-de98-426e-bc8c-78001d9a150e/MAGIC-Fireball.wav', frostbolt: '/__l5e/assets-v1/e19bace4-921a-4821-8ac0-61a82a97e224/MAGIC-Frostbolt.wav', firefrost: '/__l5e/assets-v1/5c703646-3dcf-4abb-9840-f3e2685eca75/MAGIC-Firefrost.wav',
+            bossFireball: '/__l5e/assets-v1/a32445e4-de98-426e-bc8c-78001d9a150e/MAGIC-Fireball.wav', bossCone: '/__l5e/assets-v1/e19bace4-921a-4821-8ac0-61a82a97e224/MAGIC-Frostbolt.wav',
+            spikes: '/__l5e/assets-v1/ede9b4b9-5381-4fc0-9546-3c0e3194f0a6/BOSS-Incoming-Spikes-Earth-Rumble.wav', meteorHit: '/__l5e/assets-v1/58385739-a07e-48b6-a26f-21f01d591f45/BOSS-Meteor-Hit-Rumble.wav',
+            walk: '/__l5e/assets-v1/8b8e18dd-6bd3-42f0-86f4-46ea0d670b14/MOVEMENT-Walking-Regular.wav', run: '/__l5e/assets-v1/04d366ed-3569-441e-88f9-670a1fba9d96/MOVEMENT-Running-Regular.wav',
+            musicMenu: '/__l5e/assets-v1/1d304eec-10c3-4b9d-8917-c2246c2bb3f7/MUSIC-Character-Selection-Screen.wav', musicImpact: '/__l5e/assets-v1/448cc226-80a2-4836-ae6d-4e36447d6f51/MUSIC-Character-Selected-Impact.wav',
+            musicBoss: '/__l5e/assets-v1/37b4ae0f-2d46-4166-b3a6-366f9925c7a3/MUSIC-Boss-Fight.wav', musicVictory: '/__l5e/assets-v1/4d444d0e-33ab-4168-b1b8-a80e082b05a8/MUSIC-Killed-Boss.wav',
+            lightningStrike1: '/__l5e/assets-v1/a40d9c80-b790-4fd3-a6de-650b42a7cbe7/Lightning-Strike-1.wav', lightningStrike2: '/__l5e/assets-v1/c30e1a08-cd05-4a1a-a468-a6685f973e91/Lightning-Strike-2.wav',
+            bossIncomingSwell1: '/__l5e/assets-v1/60c443a7-5815-45f9-8fc5-dc8b5867a8e7/Incoming-Swell-1.wav',
+            bossExplosion1: '/__l5e/assets-v1/844e1c73-42aa-496a-9c0b-6195b30ae0a9/Explosion-1.wav', bossExplosion2: '/__l5e/assets-v1/87ca0a2d-fb96-467f-a32c-0532cf84b60b/Explosion-2.wav', bossExplosion3: '/__l5e/assets-v1/de240585-68a1-4d08-ac6b-b3335d2654e5/Explosion-3.wav',
+            bossDeath: '/__l5e/assets-v1/80f9df37-f8a4-4e2d-9499-34f3885b02f2/BOSS-Death.wav', bossFootstep: '/__l5e/assets-v1/6f348d59-32a5-4f7d-9c38-912a31b221a4/BOSS-Footstep.wav', bossFrustrated: '/__l5e/assets-v1/18305f48-ee4f-44c5-8ff0-9c3d6af1c328/BOSS-Frustrated.wav',
+            bossPhaseChangeHorn: '/__l5e/assets-v1/d7ce3125-86c1-4439-891f-7995b7da1f34/BOSS-Phase-Change-Horn-Alert.wav', bossShadowPortal: '/__l5e/assets-v1/7d8c6419-8441-4b79-bd05-5156b586f316/BOSS-Shadow-Portal.wav',
+            movementJump: '/__l5e/assets-v1/d5be0ac1-e8c7-40f6-a510-0e4ffc0f6c7e/MOVEMENT-Jump.wav', playerHitGrunt: '/__l5e/assets-v1/b77207e8-b3a2-47c2-a152-e1fc79e79276/PLAYER-Hit-Grunt.wav',
         };
 
         const AUDIO = (() => {
@@ -1717,8 +2144,8 @@
         // Class-specific MMORPG action-bar sheets. Each PNG is ONE finished artwork
         // (frame + all 3 icon slots already composited) — never sliced.
         const CLASS_UI = {
-            mage: LB + 'MMORPG%20UI/Mage-UI.png',
-            archer: LB + 'MMORPG%20UI/Archer-UI.png',
+            mage: '/__l5e/assets-v1/559907ee-5d4f-4968-b009-0c58cfbe4fd5/Mage-UI.png',
+            archer: '/__l5e/assets-v1/2b601428-a3b1-4dd1-8d8a-bbc766e939ae/Archer-UI.png',
         };
 
         const CLASSES = {
@@ -5618,6 +6045,7 @@ void main(){ vUv = uv; vPosition = position; gl_Position = projectionMatrix * mo
             // Desktop action bar: the finished ornate artwork rendered as ONE image.
             // The .slot overlays carry only the key/cooldown UI and sit on top, transparent.
             ui.actionBarArt.src = CLASS_UI[classId];
+            portraitSigil.textContent = classId === 'archer' ? '\u27b3' : '\u2726';
             document.getElementById('actionBar').className = 'bar-' + classId;
 
             // Touch buttons: simple element-tinted circles (no ornate sheet — a rectangular
@@ -5767,12 +6195,81 @@ void main(){ vUv = uv; vPosition = position; gl_Position = projectionMatrix * mo
         }
 
         /* ============================ HUD UPDATE ============================ */
+        (function buildInvSlots() {
+            const g = document.getElementById('invGrid');
+            const items = ['\u2695', '\u2697', '\u26a1'];
+            for (let i = 0; i < 36; i++) {
+                const d = document.createElement('div');
+                d.className = 'invSlot';
+                if (i < 3) d.textContent = items[i];
+                g.appendChild(d);
+            }
+        })();
+
+        const miniMap = document.getElementById('miniMap');
+        const miniCtx = miniMap.getContext('2d');
+        const MINI_RANGE = 60; // world units mapped to the map radius
+        function drawMiniMap() {
+            const s = miniMap.width, r = s / 2;
+            miniCtx.clearRect(0, 0, s, s);
+            miniCtx.save();
+            miniCtx.beginPath(); miniCtx.arc(r, r, r - 2, 0, Math.PI * 2); miniCtx.clip();
+            miniCtx.fillStyle = 'rgba(10, 12, 16, 0.72)';
+            miniCtx.fillRect(0, 0, s, s);
+            miniCtx.strokeStyle = 'rgba(240, 200, 120, 0.13)';
+            miniCtx.lineWidth = 1;
+            for (let i = 1; i < 4; i++) {
+                miniCtx.beginPath(); miniCtx.arc(r, r, r * i / 4, 0, Math.PI * 2); miniCtx.stroke();
+            }
+            miniCtx.beginPath(); miniCtx.moveTo(r, 0); miniCtx.lineTo(r, s);
+            miniCtx.moveTo(0, r); miniCtx.lineTo(s, r); miniCtx.stroke();
+
+            const px = character ? character.position.x : 0;
+            const pz = character ? character.position.z : 0;
+            const toMap = (x, z) => [r + (x - px) / MINI_RANGE * r, r + (z - pz) / MINI_RANGE * r];
+
+            if (boss.root) {
+                const [bx, by] = toMap(boss.pos.x, boss.pos.z);
+                const inside = Math.hypot(bx - r, by - r) < r - 6;
+                const ang = Math.atan2(by - r, bx - r);
+                const cx = inside ? bx : r + Math.cos(ang) * (r - 8);
+                const cy = inside ? by : r + Math.sin(ang) * (r - 8);
+                miniCtx.fillStyle = '#ff5a2a';
+                miniCtx.shadowColor = '#ff5a2a'; miniCtx.shadowBlur = 10;
+                miniCtx.beginPath(); miniCtx.arc(cx, cy, inside ? 7 : 5, 0, Math.PI * 2); miniCtx.fill();
+                miniCtx.shadowBlur = 0;
+            }
+
+            // player arrow, pointing where the character faces
+            const yaw = character ? character.rotation.y : 0;
+            miniCtx.translate(r, r);
+            miniCtx.rotate(-yaw);
+            miniCtx.fillStyle = '#f0d896';
+            miniCtx.shadowColor = '#f0d896'; miniCtx.shadowBlur = 8;
+            miniCtx.beginPath();
+            miniCtx.moveTo(0, -11); miniCtx.lineTo(7, 8); miniCtx.lineTo(0, 4); miniCtx.lineTo(-7, 8);
+            miniCtx.closePath(); miniCtx.fill();
+            miniCtx.restore();
+        }
+
+        const qPhaseEl = document.getElementById('qPhase');
+        const qTimeEl = document.getElementById('qTime');
+        const portraitHpFill = document.getElementById('portraitHpFill');
+        const portraitHpTxt = document.getElementById('portraitHpTxt');
+        const portraitSigil = document.getElementById('portraitSigil');
+        let hudClock = 0;
+
         function updateHUD(dt) {
-            ui.hpBar.style.width = playerHP + '%';
+            const hp = Math.max(0, playerHP);
+            ui.hpBar.style.width = hp + '%';
+            portraitHpFill.style.height = hp + '%';
+            portraitHpTxt.textContent = Math.round(hp) + '%';
             ui.lowHp.style.opacity = (playerHP > 0 && playerHP < 30) ? 1 : 0;
             if (boss.root) {
-                ui.bossHp.style.width = Math.max(0, boss.hp / boss.maxHp * 100) + '%';
-                ui.bossHpTxt.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp + ' · Phase ' + boss.phase;
+                const bpct = Math.max(0, boss.hp / boss.maxHp * 100);
+                ui.bossHp.style.width = bpct + '%';
+                ui.bossHpTxt.textContent = Math.max(0, Math.ceil(boss.hp)) + ' / ' + boss.maxHp + ' \u00b7 Phase ' + boss.phase;
+                qPhaseEl.textContent = 'Phase ' + boss.phase + ' \u00b7 ' + Math.round(bpct) + '%';
             }
             for (let i = 0; i < 3; i++) {
                 const ab = abilities[i];
@@ -5787,6 +6284,13 @@ void main(){ vUv = uv; vPosition = position; gl_Position = projectionMatrix * mo
                     sweep.style.transform = 'scaleY(0)';
                     num.textContent = '';
                 }
+            }
+            hudClock += dt;
+            if (hudClock > 0.1) {
+                hudClock = 0;
+                drawMiniMap();
+                const el = Math.max(0, Math.floor(clock.elapsedTime - stats.start));
+                qTimeEl.textContent = 'Elapsed ' + Math.floor(el / 60) + ':' + String(el % 60).padStart(2, '0');
             }
             syncTouchBtns();
         }
