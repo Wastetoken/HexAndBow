@@ -1,5 +1,7 @@
 # ⚔️ Hex and Bow
 
+demo: https://hex-and-bow.lovable.app/
+
 A self-contained browser RPG demo built with Three.js. Pick your champion and take on the **Guardian of the First Gate** boss fight — playable on desktop, mobile, and gamepad.
 
 > 🚧 **Early prototype** — rough around the edges, but fully playable.
